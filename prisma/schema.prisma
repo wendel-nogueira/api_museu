@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assunto {
+  id_assunto   String         @id @db.VarChar(36)
+  nome_assunto String         @db.VarChar(500)
+  obra_assunto obra_assunto[] @ignore
+}
+
+model autor {
+  id_autor         String            @id @db.VarChar(36)
+  nome             String            @db.VarChar(500)
+  nacionalidade    String?           @db.VarChar(20)
+  ano_nascimento   Int?              @db.SmallInt
+  local_nascimento String?           @db.VarChar(50)
+  ano_morte        Int?              @db.SmallInt
+  local_morte      String?           @db.VarChar(50)
+  criacao_obra     criacao_obra[]    @ignore
+  possui_ocupacao  possui_ocupacao[] @ignore
+
+  @@index([nome], map: "idx_nome_autor")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model criacao_obra {
+  id_autor    String @db.VarChar(36)
+  num_objeto  String @db.VarChar(36) @id
+  ano_criacao Int?   @db.SmallInt
+  autor       autor  @relation(fields: [id_autor], references: [id_autor], onDelete: Cascade)
+  obra        obra   @relation(fields: [num_objeto], references: [num_objeto], onDelete: Cascade)
+
+  @@index([ano_criacao], map: "idx_ano_criacao_obra")
+}
+
+model material {
+  id_material   String          @id @db.VarChar(36)
+  nome_material String          @db.VarChar(500)
+  obra_material obra_material[] @ignore
+}
+
+model obra {
+  num_objeto    String          @id @db.VarChar(36)
+  nome          String          @db.VarChar(500)
+  tecnica       String          @db.VarChar(500)
+  tipo          String          @db.VarChar(500)
+  descricao     String
+  url_obra      String
+  criacao_obra  criacao_obra[]  @ignore
+  obra_assunto  obra_assunto[]  @ignore
+  obra_material obra_material[] @ignore
+
+  @@index([nome], map: "idx_nome_obra")
+  @@index([tipo], map: "idx_tipo_obra")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model obra_assunto {
+  id_assunto String  @db.VarChar(36)
+  num_objeto String  @db.VarChar(36) @id
+  assunto    assunto @relation(fields: [id_assunto], references: [id_assunto], onDelete: Cascade)
+  obra       obra    @relation(fields: [num_objeto], references: [num_objeto], onDelete: Cascade)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model obra_material {
+  id_material String   @db.VarChar(36)
+  num_objeto  String   @db.VarChar(36) @id
+  material    material @relation(fields: [id_material], references: [id_material], onDelete: Cascade)
+  obra        obra     @relation(fields: [num_objeto], references: [num_objeto], onDelete: Cascade)
+}
+
+model ocupacao {
+  id_ocupacao     String            @id @db.VarChar(36)
+  nome_ocupacao   String            @db.VarChar(500)
+  possui_ocupacao possui_ocupacao[] @ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model possui_ocupacao {
+  id_autor    String   @db.VarChar(36) @id
+  id_ocupacao String   @db.VarChar(36)
+  autor       autor    @relation(fields: [id_autor], references: [id_autor], onDelete: Cascade)
+  ocupacao    ocupacao @relation(fields: [id_ocupacao], references: [id_ocupacao], onDelete: Cascade)
+}
